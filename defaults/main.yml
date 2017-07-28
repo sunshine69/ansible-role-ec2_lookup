@@ -1,0 +1,6 @@
+ec2_instance_base_tags:
+  Application: "{{ ec2instance_application | default() }}"
+  Environment: "{{ ec2instance_env | default() }}"
+
+ec2_instance_search_tags: "{{ ec2_instance_base_tags | combine({'Branch': ['master'] | union([branch] if branch is defined else [])}) }}"
+ec2_launch_groups: "launch-{{ role_type }}-{{ env }}"

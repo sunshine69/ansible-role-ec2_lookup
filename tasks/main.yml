@@ -1,0 +1,50 @@
+---
+# Use extra var 'ec2instance_application' and ec2instance_env to allow this task to be called multiple times
+# within one role with different value of 'application' var and that is not
+# overriden by the highest priority command line option role_type.
+
+- name: set instance search filters
+  set_fact:
+    ec2_instance_search_filters: "{{ ec2_instance_search_filters|default({'instance-state-name': ['running', 'stopped']})|combine({ 'tag:' + item.key: item.value }) }}"
+  with_dict: "{{ ec2_instance_search_tags }}"
+  when: item.value != ""
+
+- name: Get a list of existing "{{ ec2instance_application | default(role_type) }}" instances
+  ec2_remote_facts:
+    region: "{{ region }}"
+    profile: "{{ profile|default(omit) }}"
+    filters: "{{ ec2_instance_search_filters }}"
+  register: ec2remote
+
+- name: Set the host variable
+  set_fact:
+    instance:
+      private_ip: "{{ item.private_ip_address }}"
+      public_ip: "{{ item.public_ip_address | default(omit) }}"
+      instance_id: "{{ item.id }}"
+      name_tag: "{{ item.tags.Name }}"
+      environment_tag: "{{ item.tags.Environment }}"
+  with_items: "{{ ec2remote.instances | default({}) }}"
+  register: instance_results
+
+- name: create the instance_details fact list for later use
+  set_fact:
+    instance_details:
+      instances: "{{ instance_results.results | map(attribute='ansible_facts.instance') | list }}"
+
+- debug:
+    var: instance_details
+    verbosity: 2
+
+- name: Add all "{{ ec2instance_application | default(role_type) }}" instances
+  add_host:
+    name: "{{ item.public_ip if ec2instance_use_public_ip else item.private_ip }}"
+    groups: "found_instances,{{ ec2_launch_groups }}"
+    instance_details: "{{ instance_details }}"
+  with_items: "{{ instance_details.instances | default({}) }}"
+
+- name: Add first {{role_type}} instance
+  add_host:
+    name: "{{ instance_details.instances[0].public_ip if ec2instance_use_public_ip else instance_details.instances[0].private_ip }}"
+    groups: "found_instance,{{ ec2_launch_groups }}"
+    ec2_instance: "{{ instance_details.instances[0] }}"
