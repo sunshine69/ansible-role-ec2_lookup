@@ -10,7 +10,7 @@
   when: item.value != ""
 
 - name: Get a list of existing "{{ ec2instance_application | default(role_type) }}" instances
-  ec2_remote_facts:
+  ec2_instance_facts:
     region: "{{ region }}"
     profile: "{{ profile|default(omit) }}"
     filters: "{{ ec2_instance_search_filters }}"
