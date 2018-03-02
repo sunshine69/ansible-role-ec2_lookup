@@ -21,7 +21,7 @@
     instance:
       private_ip: "{{ item.private_ip_address }}"
       public_ip: "{{ item.public_ip_address | default(omit) }}"
-      instance_id: "{{ item.id }}"
+      instance_id: "{{ item.instance_id }}"
       name_tag: "{{ item.tags.Name }}"
       environment_tag: "{{ item.tags.Environment }}"
   with_items: "{{ ec2remote.instances | default({}) }}"
