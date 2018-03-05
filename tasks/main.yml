@@ -20,8 +20,8 @@
   set_fact:
     instance:
       private_ip: "{{ item.private_ip_address }}"
-      public_ip: "{{ item.public_ip_address | default(omit) }}"
-      instance_id: "{{ item.id }}"
+      public_ip: "{{ item.public_ip_address | default() }}"
+      instance_id: "{{ item.instance_id }}"
       name_tag: "{{ item.tags.Name }}"
       environment_tag: "{{ item.tags.Environment }}"
   with_items: "{{ ec2remote.instances | default({}) }}"
@@ -41,6 +41,7 @@
     name: "{{ item.public_ip if ec2instance_use_public_ip else item.private_ip }}"
     groups: "found_instances,{{ ec2_launch_groups }}"
     instance_details: "{{ instance_details }}"
+    inventory_dir: "{{ inventory_dir }}"
   with_items: "{{ instance_details.instances | default({}) }}"
 
 - name: Add first {{role_type}} instance
