@@ -9,6 +9,10 @@
   with_dict: "{{ ec2_instance_search_tags }}"
   when: item.value != ""
 
+- debug:
+    var: ec2_instance_search_filters
+    verbosity: 2
+
 - name: Get a list of existing "{{ ec2instance_application | default(role_type) }}" instances
   ec2_instance_facts:
     region: "{{ region }}"
@@ -35,6 +39,10 @@
 - debug:
     var: instance_details
     verbosity: 2
+
+- fail:
+    msg: "Can not find any instances with search tag: {{ ec2_instance_search_filters }}"
+  when: not instance_details.instances
 
 - name: Add all "{{ ec2instance_application | default(role_type) }}" instances
   add_host:
