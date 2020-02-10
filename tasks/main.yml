@@ -14,7 +14,7 @@
     verbosity: 2
 
 - name: Get a list of existing "{{ ec2instance_application | default(role_type) }}" instances
-  ec2_instance_facts:
+  ec2_instance_info:
     region: "{{ region }}"
     profile: "{{ profile|default(omit) }}"
     filters: "{{ ec2_instance_search_filters }}"
